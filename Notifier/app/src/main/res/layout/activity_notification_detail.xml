@@ -26,4 +26,13 @@
         android:layout_height="wrap_content"
         android:textAlignment="viewStart"
         android:gravity="start" />
+
+    <Button
+        android:id="@+id/back_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Back to List"
+        android:layout_marginTop="24dp"
+        android:layout_gravity="center_horizontal" />
+
 </LinearLayout>

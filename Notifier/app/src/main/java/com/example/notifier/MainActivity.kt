@@ -1,125 +1,49 @@
 package com.example.notifier
 
-import android.Manifest
-import android.os.Build
 import android.os.Bundle
-import android.util.Log
-import android.widget.Button
-import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
-import androidx.work.*
-import android.widget.Toast
-import android.widget.TextView
-
-
+import androidx.fragment.app.Fragment
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import com.google.android.material.tabs.TabLayoutMediator
+import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.tabs.TabLayout
+import android.content.Intent
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var serverInput: EditText
-    private lateinit var userInput: EditText
-    private lateinit var passInput: EditText
-    private lateinit var saveButton: Button
-    private val prefsName = "webprefs"
+    private val tabTitles = arrayOf("Notifications", "Settings")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        updateWorkerStatusLabel()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 0)
-        }
-
-        serverInput = findViewById(R.id.server_input)
-        userInput = findViewById(R.id.user_input)
-        passInput = findViewById(R.id.pass_input)
-        saveButton = findViewById(R.id.save_button)
-
-        val prefs = getSharedPreferences(prefsName, MODE_PRIVATE)
-        serverInput.setText(prefs.getString("server", "http://www.sptls.online"))
-        userInput.setText(prefs.getString("user", "sptls"))
-        passInput.setText(prefs.getString("pass", "2137"))
-
-        saveButton.setOnClickListener {
-            val server = serverInput.text.toString().trim()
-            val user = userInput.text.toString().trim()
-            val pass = passInput.text.toString().trim()
-
-            prefs.edit()
-                .putString("server", server)
-                .putString("user", user)
-                .putString("pass", pass)
-                .apply()
-
-            Log.d("MainActivity", "Saved settings and starting worker")
-
-            WorkManager.getInstance(applicationContext)
-                .cancelUniqueWork("web-fetch-loop")
-
-            val initialRequest = OneTimeWorkRequestBuilder<FetchWorker>().build()
-
-            WorkManager.getInstance(applicationContext)
-                .enqueueUniqueWork("web-fetch-loop", ExistingWorkPolicy.REPLACE, initialRequest)
-        }
-
-        val restartWorkerButton: Button = findViewById(R.id.restart_worker_button)
-
-        restartWorkerButton.setOnClickListener {
-            Log.d("MainActivity", "Manual restart of FetchWorker requested")
-            WorkManager.getInstance(applicationContext).cancelUniqueWork("web-fetch-loop")
-
-            val initialRequest = OneTimeWorkRequestBuilder<FetchWorker>().build()
-
-            WorkManager.getInstance(applicationContext)
-                .enqueueUniqueWork("web-fetch-loop", ExistingWorkPolicy.REPLACE, initialRequest)
-        }
-
-        val stopWorkerButton: Button = findViewById(R.id.stop_worker_button)
-
-        stopWorkerButton.setOnClickListener {
-            Log.d("MainActivity", "Stopping background worker")
-
-            // Cancel both fast loop and fallback periodic worker
-            WorkManager.getInstance(applicationContext).cancelUniqueWork("web-fetch-loop")
-            WorkManager.getInstance(applicationContext).cancelUniqueWork("web-fetch-persistent")
-
-            Toast.makeText(this, "Notifications stopped", Toast.LENGTH_SHORT).show()
-        }
-
-
-    }
-
-    private fun updateWorkerStatusLabel() {
-        val label: TextView = findViewById(R.id.worker_status_label)
-
-        WorkManager.getInstance(applicationContext)
-            .getWorkInfosForUniqueWorkLiveData("web-fetch-loop")
-            .observe(this) { infos ->
-                val isActive = infos.any {
-                    it.state == WorkInfo.State.ENQUEUED || it.state == WorkInfo.State.RUNNING
+        intent?.let {
+            if (it.getBooleanExtra("open_detail", false)) {
+                val detailIntent = Intent(this, NotificationDetailActivity::class.java).apply {
+                    putExtra("title", it.getStringExtra("title"))
+                    putExtra("body", it.getStringExtra("body"))
                 }
-
-                val statusText = if (isActive) "on" else "off"
-                val fullText = "Notifier status: $statusText"
-                val spannable = android.text.SpannableString(fullText)
-
-                val color = if (isActive)
-                    getColor(android.R.color.holo_green_dark)
-                else
-                    getColor(android.R.color.holo_red_dark)
-
-                val start = fullText.indexOf(statusText)
-                val end = start + statusText.length
-
-                spannable.setSpan(
-                    android.text.style.ForegroundColorSpan(color),
-                    start,
-                    end,
-                    android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-
-                label.text = spannable
+                startActivity(detailIntent)
             }
-    }
+        }
 
+
+        val viewPager: ViewPager2 = findViewById(R.id.viewPager)
+        val tabLayout: TabLayout = findViewById(R.id.tabLayout)
+
+        viewPager.adapter = object : FragmentStateAdapter(this) {
+            override fun getItemCount() = 2
+            override fun createFragment(position: Int): Fragment {
+                return when (position) {
+                    0 -> NotificationsFragment()
+                    1 -> SettingsFragment()
+                    else -> NotificationsFragment()
+                }
+            }
+        }
+
+        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
+            tab.text = tabTitles[position]
+        }.attach()
+    }
 }

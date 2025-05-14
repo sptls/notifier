@@ -120,11 +120,13 @@ class FetchWorker(
     private fun showNotification(title: String, text: String) {
         createNotificationChannel()
 
-        val intent = Intent(applicationContext, NotificationDetailActivity::class.java).apply {
+        val intent = Intent(applicationContext, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             putExtra("title", title)
             putExtra("body", text)
+            putExtra("open_detail", true)
         }
+
 
         val pendingIntent = PendingIntent.getActivity(
             applicationContext,
@@ -148,6 +150,8 @@ class FetchWorker(
             System.currentTimeMillis().toInt(),
             notification
         )
+
+        NotificationStorage.addEntry(applicationContext, NotificationLogEntry(title, text, System.currentTimeMillis()))
     }
 
     private fun createNotificationChannel() {

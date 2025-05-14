@@ -1,5 +1,3 @@
 <?php
-echo "DUPA"
+    echo "dupa";
 ?>
-asdfasdf
-sdfgsdfgsdfg
