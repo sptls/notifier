@@ -92,23 +92,31 @@
         <!-- Buttons -->
         <Button
             android:id="@+id/save_button"
-            android:text="Save and Start"
+            android:text="Start"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp" />
 
         <Button
             android:id="@+id/restart_worker_button"
-            android:text="Restart Notifications"
+            android:text="Restart service"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp" />
 
         <Button
             android:id="@+id/stop_worker_button"
-            android:text="Stop Notifications"
+            android:text="Stop service"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/reset_button"
+            android:text="Reset Notifications"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" />
+
 
     </LinearLayout>
 </ScrollView>

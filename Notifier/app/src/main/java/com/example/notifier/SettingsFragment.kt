@@ -61,6 +61,50 @@ class SettingsFragment : Fragment() {
             Toast.makeText(requireContext(), "Notifications stopped", Toast.LENGTH_SHORT).show()
         }
 
+        val resetButton: Button = view.findViewById(R.id.reset_button)
+
+        resetButton.setOnClickListener {
+            val user = userInput.text.toString().trim()
+            val pass = passInput.text.toString().trim()
+            val server = serverInput.text.toString().trim()
+
+            Thread {
+                try {
+                    val client = okhttp3.OkHttpClient()
+                    val formBody = okhttp3.FormBody.Builder()
+                        .add("user", user)
+                        .add("pass", pass)
+                        .build()
+
+                    val request = okhttp3.Request.Builder()
+                        .url("$server/reset.php")
+                        .post(formBody)
+                        .build()
+
+                    val response = client.newCall(request).execute()
+                    val responseText = response.body?.string()?.trim()
+
+                    if (response.isSuccessful) {
+                        // Reset local counter
+                        requireContext().getSharedPreferences(prefsName, Context.MODE_PRIVATE)
+                            .edit().putInt("lastSeenId", -1).apply()
+
+                        requireActivity().runOnUiThread {
+                            Toast.makeText(requireContext(), "Reset successful: $responseText", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        requireActivity().runOnUiThread {
+                            Toast.makeText(requireContext(), "Reset failed: $responseText", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                } catch (e: Exception) {
+                    requireActivity().runOnUiThread {
+                        Toast.makeText(requireContext(), "Reset error: ${e.message}", Toast.LENGTH_LONG).show()
+                    }
+                }
+            }.start()
+        }
+
         // Update status label
         WorkManager.getInstance(requireContext())
             .getWorkInfosForUniqueWorkLiveData("web-fetch-loop")

@@ -22,7 +22,7 @@ class FetchWorker(
     workerParams: WorkerParameters
 ) : CoroutineWorker(appContext, workerParams) {
 
-    private val channelId = "web_fetch_channel_v2"
+    private val channelId = "web_fetch_channel_v"
     private val prefsName = "webprefs"
     private val counterKey = "lastSeenId"
     private val user = "sptls"

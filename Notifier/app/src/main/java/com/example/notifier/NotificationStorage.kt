@@ -22,4 +22,12 @@ object NotificationStorage {
         val type = object : TypeToken<List<NotificationLogEntry>>() {}.type
         return Gson().fromJson(json, type) ?: emptyList()
     }
+
+    fun clear(context: Context) {
+        val file = File(context.filesDir, fileName)
+        if (file.exists()) {
+            file.delete()
+        }
+    }
+
 }
